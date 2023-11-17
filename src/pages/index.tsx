@@ -4,20 +4,7 @@ import Link from "next/link";
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
-async function main() {
-  // ... you will write your Prisma Client queries here
-  const allUsers = await prisma.user.findMany()
-  console.log(allUsers)
-}
-// main()
-//   .then(async () => {
-//     await prisma.$disconnect()
-//   })
-//   .catch(async (e) => {
-//     console.error(e)
-//     await prisma.$disconnect()
-//     process.exit(1)
-//   })
+
 import { api } from "~/utils/api";
 
 export default function Home() {
@@ -33,33 +20,10 @@ export default function Home() {
       <main className=" flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c]">
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
           <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
-            Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
+            Static <span className="text-[hsl(280,100%,70%)]">Form </span> 
           </h1>
-          <button onClick={main}>click me</button>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-              href="https://create.t3.gg/en/usage/first-steps"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">First Steps →</h3>
-              <div className="text-lg">
-                Just the basics - Everything you need to know to set up your
-                database and authentication.
-              </div>
-            </Link>
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-              href="https://create.t3.gg/en/introduction"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">Documentation →</h3>
-              <div className="text-lg">
-                Learn more about Create T3 App, the libraries it uses, and how
-                to deploy it.
-              </div>
-            </Link>
-          </div>
+          
+        
           <div className="flex flex-col items-center gap-2">
             <p className="text-2xl text-white">
               {hello.data ? hello.data.greeting : "Loading tRPC query..."}
@@ -74,6 +38,10 @@ export default function Home() {
 
 function AuthShowcase() {
   const { data: sessionData } = useSession();
+  const userId = sessionData?.user?.id;
+
+  // Always call useQuery, but pass in userId only when it's defined
+  const userForm = api.form.getForm.useQuery({userId: userId || ''});
 
   const { data: secretMessage } = api.post.getSecretMessage.useQuery(
     undefined, // no input
@@ -86,6 +54,19 @@ function AuthShowcase() {
         {sessionData && <span>Logged in as {sessionData.user?.name}</span>}
         {secretMessage && <span> - {secretMessage}</span>}
       </p>
+      {sessionData && userForm.data && (
+        userForm.data.map((form, index) => (
+          <ul key={index} className="w-full list-none">
+            <li className="w-full mb-4">
+              <div className="border-2 border-white bg-purple-500 w-full p-4 rounded-md shadow-lg">
+                <h1 className="text-white text-xl font-bold">{form.title}</h1>
+                <p className="text-white">-{form.description}</p>
+                {/* Render the rest of your form here using the data from form */}
+              </div>
+            </li>
+          </ul>
+        ))
+      )}
       <button
         className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
         onClick={sessionData ? () => void signOut() : () => void signIn()}
@@ -95,3 +76,4 @@ function AuthShowcase() {
     </div>
   );
 }
+

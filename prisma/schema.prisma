@@ -14,22 +14,6 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Post {
-    id        Int      @id @default(sequence())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    createdBy   User   @relation(fields: [createdById], references: [id])
-    createdById String
-
-    @@index([name])
-}
-
-model Widget {
-    id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-}
-
 // Necessary for Next auth
 model Account {
     id                String  @id @default(cuid())
@@ -58,14 +42,49 @@ model Session {
 }
 
 model User {
-    id            String    @id @default(cuid())
+    id            String     @id @default(cuid())
     name          String?
-    email         String?   @unique
+    email         String?    @unique
     emailVerified DateTime?
     image         String?
     accounts      Account[]
     sessions      Session[]
-    posts         Post[]
+    forms         Form[]     @relation("UserForms")
+    responses     Response[] @relation("UserResponses")
+}
+
+model Form {
+    id          String     @id @default(cuid())
+    title       String
+    description String?
+    createdAt   DateTime   @default(now())
+    updatedAt   DateTime   @updatedAt
+    userId      String
+    user        User       @relation("UserForms", fields: [userId], references: [id])
+    responses   Response[]
+}
+
+model Question {
+    id        String     @id @default(cuid())
+    label     String
+    type      String // This can be 'string', 'radio', 'checkbox', 'dropdown', 'datetime', etc.
+    options   Json? // This can be used to store the options for 'radio', 'checkbox', 'dropdown' types
+    createdAt DateTime   @default(now())
+    updatedAt DateTime   @updatedAt
+    responses Response[]
+}
+
+model Response {
+    id            Int      @id @default(sequence())
+    formId        String
+    form          Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+    questionId    String
+    question      Question @relation(fields: [questionId], references: [id])
+    userId        String
+    user          User     @relation("UserResponses", fields: [userId], references: [id])
+    responseValue Json // This can be used to store the response value. The structure can vary based on the question type.
+    createdAt     DateTime @default(now())
+    updatedAt     DateTime @updatedAt
 }
 
 model VerificationToken {
