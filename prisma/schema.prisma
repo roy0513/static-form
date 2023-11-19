@@ -53,29 +53,41 @@ model User {
     responses     Response[] @relation("UserResponses")
 }
 
-model Form {
-    id          String     @id @default(cuid())
-    title       String
-    description String?
-    createdAt   DateTime   @default(now())
-    updatedAt   DateTime   @updatedAt
-    userId      String
-    user        User       @relation("UserForms", fields: [userId], references: [id])
-    responses   Response[]
+model Question {
+    id            String         @id @default(cuid())
+    label         String
+    type          String // This can be 'string', 'radio', 'checkbox', 'dropdown', 'datetime', etc.
+    options       Json? // This can be used to store the options for 'radio', 'checkbox', 'dropdown' types
+    createdAt     DateTime       @default(now())
+    updatedAt     DateTime       @updatedAt
+    isDefault     Boolean        @default(false)
+    responses     Response[]
+    formQuestions FormQuestion[] // Add this line
 }
 
-model Question {
-    id        String     @id @default(cuid())
-    label     String
-    type      String // This can be 'string', 'radio', 'checkbox', 'dropdown', 'datetime', etc.
-    options   Json? // This can be used to store the options for 'radio', 'checkbox', 'dropdown' types
-    createdAt DateTime   @default(now())
-    updatedAt DateTime   @updatedAt
-    responses Response[]
+model Form {
+    id            String         @id @default(cuid())
+    title         String
+    description   String?
+    createdAt     DateTime       @default(now())
+    updatedAt     DateTime       @updatedAt
+    userId        String
+    user          User           @relation("UserForms", fields: [userId], references: [id])
+    responses     Response[]
+    formQuestions FormQuestion[] @relation("FormQuestions") // Add this line
+}
+
+model FormQuestion {
+    formId     String
+    form       Form     @relation("FormQuestions", fields: [formId], references: [id], onDelete: Cascade) // Modify this line
+    questionId String
+    question   Question @relation(fields: [questionId], references: [id])
+
+    @@id([formId, questionId])
 }
 
 model Response {
-    id            Int      @id @default(sequence())
+    id            String   @id @default(cuid())
     formId        String
     form          Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
     questionId    String
