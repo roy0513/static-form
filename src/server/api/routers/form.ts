@@ -29,6 +29,7 @@ export const formRouter = createTRPCRouter({
     getFormById: protectedProcedure
     .input(z.object({ formId: z.string().min(1) }))
     .query(({ ctx,input }) => {
+      
       return ctx.db.form.findUnique({
         where: { id: input.formId },
         include: {
@@ -84,7 +85,7 @@ createForm: protectedProcedure
         formId: newForm.id,
         questionId: question.id,
         userId: input.userId,
-        responseValue:{}
+        responseValue:{responseValue:""}
       }));
        await ctx.db.response.createMany({data:formResponseQuestions});
 
@@ -94,9 +95,58 @@ createForm: protectedProcedure
       throw error;
     }
   }),
+  updateForm: protectedProcedure
+  .input(z.object({
+    formId: z.string(),
+    responses: z.array(z.object({
+      questionId: z.string(),
+      responseValue: z.any(),
+    })),
+  }))
+  .mutation(async ({ ctx, input }) => {
+    const { formId, responses } = input;
+    console.log(formId)
+    const form = await ctx.db.form.findUnique({
+      where: { id: formId },
+      include: {
+        formQuestions: {
+          include: {
+            question: {
+              include: {
+                responses: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
+    if (!form) {
+      throw new Error('Form not found');
+    }
+    console.log(form)
+    const updatedResponses = await Promise.all(responses.map(async (response) => {
+      const formQuestion = form.formQuestions.find(fq => fq.questionId === response.questionId);
+      if (formQuestion && formQuestion.question.responses && formQuestion.question.responses[0]) {
+        const responseToUpdate = await ctx.db.response.findFirst({
+          where: { 
+            formId: formId, 
+            questionId: response.questionId 
+          }
+        });
+        if (responseToUpdate) {
+          return ctx.db.response.update({
+            where: { id: responseToUpdate.id },
+            data: { responseValue: {responseValue:response.responseValue} },
+          });
+        }
+      }
+    }));
+    
 
-  
+    return { form, updatedResponses };
+  }),
+
 
     getSecretMessage: protectedProcedure.query(() => {
       return "you can now see this secret message!";
