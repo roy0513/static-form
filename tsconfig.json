@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    // @ts-ignore
     /* Base Options: */
     "esModuleInterop": true,
     "skipLibCheck": true,

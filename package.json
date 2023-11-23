@@ -20,8 +20,10 @@
     "@trpc/next": "^10.37.1",
     "@trpc/react-query": "^10.37.1",
     "@trpc/server": "^10.37.1",
+    "cloudinary": "^1.41.0",
     "next": "^14.0.0",
     "next-auth": "^4.24.4",
+    "next-cloudinary": "^5.7.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-modal": "^3.16.1",
@@ -50,5 +52,4 @@
     "initVersion": "7.23.2"
   },
   "packageManager": "npm@10.1.0"
-
 }

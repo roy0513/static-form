@@ -3,9 +3,9 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from "@prisma/client";
 import CreateFormModal from "./formCreateModel";
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 import { api } from "~/utils/api";
 
@@ -22,10 +22,9 @@ export default function Home() {
       <main className=" flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c]">
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
           <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
-            Static <span className="text-[hsl(280,100%,70%)]">Form </span> 
+            Static <span className="text-[hsl(280,100%,70%)]">Form </span>
           </h1>
-          
-        
+
           <div className="flex flex-col items-center gap-2">
             <p className="text-2xl text-white">
               {hello.data ? hello.data.greeting : "Loading tRPC query..."}
@@ -43,15 +42,15 @@ function AuthShowcase() {
   const userId = sessionData?.user?.id;
 
   // Always call useQuery, but pass in userId only when it's defined
-  const userForm = api.form.getForm.useQuery({userId: userId || ''});
+  const userForm = api.form.getForm.useQuery({ userId: userId || "" });
 
   const { data: secretMessage } = api.post.getSecretMessage.useQuery(
     undefined, // no input
-    { enabled: sessionData?.user !== undefined }
+    { enabled: sessionData?.user !== undefined },
   );
-    // State hooks for modal visibility and form inputs
+  // State hooks for modal visibility and form inputs
   const [isModalOpen, setIsModalOpen] = useState(false);
-    const deleteFormMutation= api.form.deleteForm.useMutation();
+  const deleteFormMutation = api.form.deleteForm.useMutation();
   return (
     <div className="flex flex-col items-center justify-center gap-4">
       {sessionData && userId && (
@@ -62,39 +61,45 @@ function AuthShowcase() {
           >
             +
           </button>
-          <CreateFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onConfirm={()=>console.log("close")} userId={userId} onFormCreated={userForm.refetch} />
+          <CreateFormModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            onConfirm={() => console.log("close")}
+            userId={userId}
+            onFormCreated={userForm.refetch}
+          />
         </>
       )}
       <p className="text-center text-2xl text-white">
         {sessionData && <span>Logged in as {sessionData.user?.name}</span>}
         {secretMessage && <span> - {secretMessage}</span>}
       </p>
-      {sessionData && userForm.data && (
+      {sessionData &&
+        userForm.data &&
         userForm.data.map((form, index) => (
           <ul key={index} className="w-full list-none">
-            <li className="w-full mb-4 cursor-pointer border-2 border-white bg-purple-500  p-4 rounded-md shadow-lg">
-  <Link href={`/form/${form.id}`}>
-        <h1 className="text-white text-xl font-bold">{form.title}</h1>
-        <p className="text-white">-{form.description}</p>
-        {/* Render the rest of your form here using the data from form */}
-  </Link>
-  <button
-    onClick={async () => {
-      try {
-        await deleteFormMutation.mutateAsync({ formId: form.id });
-        // Refresh the form list after deletion
-        userForm.refetch();
-      } catch (error) {
-        console.error('Error deleting form:', error);
-      }
-    }}
-  >
-    Delete
-  </button>
-</li>
+            <li className="mb-4 w-full cursor-pointer rounded-md border-2 border-white  bg-purple-500 p-4 shadow-lg">
+              <Link href={`/form/${form.id}`}>
+                <h1 className="text-xl font-bold text-white">{form.title}</h1>
+                <p className="text-white">-{form.description}</p>
+                {/* Render the rest of your form here using the data from form */}
+              </Link>
+              <button
+                onClick={async () => {
+                  try {
+                    await deleteFormMutation.mutateAsync({ formId: form.id });
+                    // Refresh the form list after deletion
+                    userForm.refetch();
+                  } catch (error) {
+                    console.error("Error deleting form:", error);
+                  }
+                }}
+              >
+                ❌
+              </button>
+            </li>
           </ul>
-        ))
-      )}
+        ))}
       <button
         className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
         onClick={sessionData ? () => void signOut() : () => void signIn()}
@@ -104,4 +109,3 @@ function AuthShowcase() {
     </div>
   );
 }
-
